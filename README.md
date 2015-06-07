@@ -7,7 +7,9 @@ with Spyder servers.
 Key Features
 ---------------
 * Works with all versions of Spyder Server, from version 2.10.8 and up
+* Works with both Spyder 200/300 and Spyder X20 systems
 * Works by listening to existing Spyder status update messages on the network - no added CPU or network bandwidth overhead
+* Gives us tallies for the Vista Spyder video processor!
 
 Usage
 ---------------
