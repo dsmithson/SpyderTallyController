@@ -1,5 +1,4 @@
-﻿using PCLStorage;
-using Spyder.Client;
+﻿using Spyder.Client;
 using Spyder.Client.Net;
 using System;
 using System.Collections.Generic;
@@ -57,17 +56,16 @@ namespace SpyderTallyController
             }
 
             //Initialize our spyder client
-            IFolder localCache = await FileSystem.Current.LocalStorage.CreateFolderAsync("Server", CreationCollisionOption.OpenIfExists);
-            spyderManager = new SpyderClientManager(localCache);
+            spyderManager = new SpyderClientManager();
             spyderManager.ServerListChanged += SpyderManager_ServerListChanged;
-            await spyderManager.Startup();
+            await spyderManager.StartupAsync();
         }
 
-        private void SpyderManager_ServerListChanged(object sender, EventArgs e)
+        private async void SpyderManager_ServerListChanged(object sender, EventArgs e)
         {
             if (spyderServer == null)
             {
-                spyderServer = spyderManager.GetServer(spyderIP);
+                spyderServer = await spyderManager.GetServerAsync(spyderIP);
                 if (spyderServer != null)
                 {
                     spyderServer.DrawingDataReceived += SpyderServer_DrawingDataReceived;
