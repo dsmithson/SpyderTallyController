@@ -1,0 +1,24 @@
+{
+  "TallyConfigurations": {
+    "0": {
+      "Mode": "OnInProgram",
+      "SpyderServerIP": "192.168.86.231",
+      "SpyderSourceName": "Source 1"
+    },
+    "1": {
+      "Mode": "OnInPreview",
+      "SpyderServerIP": "192.168.86.231",
+      "SpyderSourceName": "Source 2"
+    },
+    "2": {
+      "Mode": "ForceOff",
+      "SpyderServerIP": "192.168.86.231",
+      "SpyderSourceName": "Source 3"
+    },
+    "3": {
+      "Mode": "ForceOff",
+      "SpyderServerIP": "192.168.86.231",
+      "SpyderSourceName": "Source 4"
+    }
+  }
+}
