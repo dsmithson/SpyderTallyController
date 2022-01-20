@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
      run:
-      working-directory: $GITHUB_WORKSPACE/src/Linux/SpyderTallyControllerLinux
+      working-directory: src/Linux/SpyderTallyControllerLinux
 
     steps:
     - uses: actions/checkout@v2
