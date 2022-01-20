@@ -27,7 +27,7 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish
-      run: dotnet -c Release publish --no-build --verbosity normal
+      run: dotnet publish -c Release --no-build --verbosity normal
     
     # Uploade the published artifacts
     - name: Upload Publish Artifact
