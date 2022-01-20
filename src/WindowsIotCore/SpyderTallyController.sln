@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2042
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpyderTallyController", "SpyderTallyController\SpyderTallyController.csproj", "{2C25E528-C4EE-4F1D-A3F8-760E45A9BBE4}"
 EndProject
@@ -15,9 +15,9 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2C25E528-C4EE-4F1D-A3F8-760E45A9BBE4}.Debug|ARM.ActiveCfg = Debug|ARM
-		{2C25E528-C4EE-4F1D-A3F8-760E45A9BBE4}.Debug|ARM.Build.0 = Debug|ARM
-		{2C25E528-C4EE-4F1D-A3F8-760E45A9BBE4}.Debug|ARM.Deploy.0 = Debug|ARM
+		{2C25E528-C4EE-4F1D-A3F8-760E45A9BBE4}.Debug|ARM.ActiveCfg = Debug|x64
+		{2C25E528-C4EE-4F1D-A3F8-760E45A9BBE4}.Debug|ARM.Build.0 = Debug|x64
+		{2C25E528-C4EE-4F1D-A3F8-760E45A9BBE4}.Debug|ARM.Deploy.0 = Debug|x64
 		{2C25E528-C4EE-4F1D-A3F8-760E45A9BBE4}.Debug|x64.ActiveCfg = Debug|x64
 		{2C25E528-C4EE-4F1D-A3F8-760E45A9BBE4}.Debug|x64.Build.0 = Debug|x64
 		{2C25E528-C4EE-4F1D-A3F8-760E45A9BBE4}.Debug|x64.Deploy.0 = Debug|x64
