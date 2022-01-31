@@ -21,7 +21,11 @@ build/
 bld/
 [Bb]in/
 [Oo]bj/
+sdBuild/
 
+# Build app local files
+SpyderTallyApp.zip
+config.txt
 # Visual Studo 2015 cache/options directory
 .vs/
 
