@@ -52,7 +52,18 @@ namespace SpyderTallyControllerWebApp.Models
 
         private string GetFullFilePath(string fileName)
         {
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            string configPath = AppDomain.CurrentDomain.BaseDirectory;
+
+            //Look to see if a path is specified in the app args, in which case look there first for the file
+            string[] args = Environment.GetCommandLineArgs();
+            if(args != null && args.Length > 0)
+            {
+                if(Directory.Exists(args[0]))
+                {
+                    configPath = args[0];
+                }
+            }
+            return Path.Combine(configPath, fileName);
         }
 
         private T Load<T>(string fileName)
@@ -79,7 +90,7 @@ namespace SpyderTallyControllerWebApp.Models
 
         private void Save<T>(string fileName, T value)
         {
-            string configFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            string configFile = GetFullFilePath(fileName);
             using var stream = File.Create(configFile);
             JsonSerializer.Serialize(stream, value, new JsonSerializerOptions()
             {
@@ -93,7 +104,7 @@ namespace SpyderTallyControllerWebApp.Models
 
         private async Task SaveAsync<T>(string fileName, T value)
         {
-            string configFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            string configFile = GetFullFilePath(fileName);
             using var stream = File.Create(configFile);
             await JsonSerializer.SerializeAsync(stream, value, new JsonSerializerOptions()
             {
