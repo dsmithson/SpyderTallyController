@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Device.Gpio;
 using System.Device.I2c;
 using System.Threading;
@@ -10,8 +10,11 @@ namespace SpyderTallyControllerWebApp.Models
 {
     public class DisplayRepository : IDisplayRepository
     {
+        private const int displayWidth = 16;
+
         private const int filledCircleLocation = 0;
         private const int emptyCircleLocation = 1;
+        private const int blinkIconLocation = 2;
 
         private readonly I2cDevice i2c;
         private readonly Pcf8574 driver;
@@ -19,9 +22,13 @@ namespace SpyderTallyControllerWebApp.Models
 
         private readonly IRelayRepository relayRepository;
 
+        private readonly object displayLock = new object();
         private DisplayMode displayMode = DisplayMode.Normal;
         private string manualTextLine1 = "";
         private string manualTextLine2 = "";
+
+        private bool isBlinkIconOn;
+        private Timer blinkTimer;
 
         public DisplayRepository(IRelayRepository relayRepository)
         {
@@ -42,34 +49,49 @@ namespace SpyderTallyControllerWebApp.Models
             //Create filled 0 charcater
             byte[] filledCircle = new byte[]
             {
+                0x00,   // 00000
+                0x00,   // 00000
                 0x0E,   // 0XXX0
                 0x1F,   // XXXXX
                 0x1F,   // XXXXX
                 0x1F,   // XXXXX
-                0x1F,   // XXXXX
-                0x1F,   // XXXXX
-                0x1F,   // XXXXX
                 0x0E,   // 0XXX0
+                0x00,   // 00000
             };
             lcd.CreateCustomCharacter(filledCircleLocation, filledCircle);
 
             byte[] emptyCircle = new byte[]
             {
+                0x00,   // 00000
+                0x00,   // 00000
                 0x0E,   // 0XXX0
                 0x11,   // X000X
                 0x11,   // X000X
                 0x11,   // X000X
-                0x11,   // X000X
-                0x11,   // X000X
-                0x11,   // X000X
                 0x0E,   // 0XXX0
+                0x00,   // 00000
             };
             lcd.CreateCustomCharacter(emptyCircleLocation, emptyCircle);
+
+            byte[] blinkIcon = new byte[]
+            {
+                0x00,   // 00000
+                0x00,   // 00000
+                0x00,   // 00000
+                0x06,   // 00XX0
+                0x06,   // 00XX0
+                0x00,   // 00000
+                0x00,   // 00000
+                0x00,   // 00000
+            };
+            lcd.CreateCustomCharacter(blinkIconLocation, blinkIcon);
 
 
             lcd.Clear();
             lcd.DisplayOn = true;
             UpdateDisplay();
+
+            blinkTimer = new Timer(OnBlinkTimer, null, TimeSpan.FromSeconds(0.8), TimeSpan.FromSeconds(0.8));
         }
 
         private void RelayRepository_RelayStatusChanged(object sender, EventArgs e)
@@ -95,31 +117,51 @@ namespace SpyderTallyControllerWebApp.Models
             UpdateDisplay();
         }
 
-        public void UpdateDisplay()
+        public void UpdateDisplay(bool blinkCursorOnly = false)
         {
-            string text1, text2;
-            if (displayMode == DisplayMode.Normal)
+            lock (displayLock)
             {
-                text1 = Dns.GetHostAddresses(Dns.GetHostName())
-                    .Where(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && ip.GetAddressBytes()[0] != 127)
-                    .FirstOrDefault()?
-                    .ToString() ?? "<No IP>";
+              if (!blinkCursorOnly)
+              {
+                  string text1, text2;
+                  if (displayMode == DisplayMode.Normal)
+                  {
+                      text1 = Dns.GetHostAddresses(Dns.GetHostName())
+                          .Where(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && ip.GetAddressBytes()[0] != 127)
+                          .FirstOrDefault()?
+                          .ToString() ?? "<No IP>";
 
-                text2 = String.Join(null, relayRepository.GetRelayStatus().Select(isOn => isOn ? (char)filledCircleLocation : (char)emptyCircleLocation));
+                      var relays = relayRepository.GetRelayStatus();
+                      text2 = String.Join(null, relays.Select(isOn => isOn ? (char)filledCircleLocation : (char)emptyCircleLocation))
+                          .PadLeft((displayWidth + relays.Length) / 2);
+                  }
+                  else
+                  {
+                      text1 = manualTextLine1;
+                      text2 = manualTextLine2;
+                  }
 
-                //Debug
-                Console.WriteLine(string.Join(Environment.NewLine, Dns.GetHostAddresses(Dns.GetHostName()).ToList()));
-            }
-            else
-            {
-                text1 = manualTextLine1;
-                text2 = manualTextLine2;
-            }
-            lcd.SetCursorPosition(0, 0);
-            lcd.Write(text1);
+                  lcd.SetCursorPosition(0, 0);
+                  lcd.Write(text1);
 
-            lcd.SetCursorPosition(0, 1);
-            lcd.Write(text2);
+                  lcd.SetCursorPosition(0, 1);
+                  lcd.Write(text2);
+              }
+
+              //Update blink icon
+              lcd.SetCursorPosition(displayWidth - 1, 0);
+              if (isBlinkIconOn)
+                  lcd.Write(new char[] { (char)blinkIconLocation });
+              else
+                  lcd.Write(" ");
+           }
+        }
+
+        private void OnBlinkTimer(object state)
+        {
+            //Toggle blink
+            isBlinkIconOn = !isBlinkIconOn;
+            UpdateDisplay(true);
         }
     }
 }
