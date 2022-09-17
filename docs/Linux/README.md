@@ -29,6 +29,8 @@ This document is mostly quick notes to help me remember how to build a disk imag
 
 As needed, run `sudo systemctl [stop|start|restart] SpyderTallies` to manage service.
 
+Also as needed, run `sudo journalctl -u SpyderTallies -f` to tail the service output log for troubleshooting purposes.
+
 ## Cleaning up before/during building an SD card image after configuring
 - Delete SSH keys (if added to edit/push code)
 - Make sure your user password is 'spyder'
