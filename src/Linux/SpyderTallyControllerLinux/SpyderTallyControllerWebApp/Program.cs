@@ -2,6 +2,11 @@ using SpyderTallyControllerWebApp;
 using SpyderTallyControllerWebApp.Models;
 
 var spyderManager = new Spyder.Client.SpyderClientManager();
+spyderManager.ServerListChanged += async (s, e) =>
+{
+    foreach (var server in (await spyderManager.GetServers()))
+        server.DrawingDataThrottleInterval = TimeSpan.FromMilliseconds(100);
+};
 await spyderManager.StartupAsync();
 
 var builder = WebApplication.CreateBuilder(args);
