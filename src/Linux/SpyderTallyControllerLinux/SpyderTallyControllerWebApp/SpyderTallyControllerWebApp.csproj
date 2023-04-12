@@ -4,7 +4,6 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RuntimeIdentifier>linux-arm</RuntimeIdentifier>
     <Version>1.0.1</Version>
   </PropertyGroup>
 
