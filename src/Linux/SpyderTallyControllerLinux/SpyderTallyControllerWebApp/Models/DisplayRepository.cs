@@ -32,19 +32,30 @@ namespace SpyderTallyControllerWebApp.Models
 
         public DisplayRepository(IRelayRepository relayRepository)
         {
+            try
+            {
+                //Initialize our display
+                i2c = I2cDevice.Create(new I2cConnectionSettings(1, 0x27));
+                driver = new Pcf8574(i2c);
+                lcd = new Lcd1602(registerSelectPin: 0,
+                    enablePin: 2,
+                    dataPins: new int[] { 4, 5, 6, 7 },
+                    backlightPin: 3,
+                    backlightBrightness: 0.1f,
+                    readWritePin: 1,
+                    controller: new GpioController(PinNumberingScheme.Logical, driver));
+            }
+            catch(Exception ex)
+            {
+                i2c = null;
+                driver = null;
+                lcd = null;
+                Console.WriteLine($"{ex.GetType().Name} occurred while trying to open display: {ex.Message}.  Display will be unavailable");
+                return;
+            }
+            
             this.relayRepository = relayRepository;
             this.relayRepository.RelayStatusChanged += RelayRepository_RelayStatusChanged;
-
-            //Initialize our display
-            i2c = I2cDevice.Create(new I2cConnectionSettings(1, 0x27));
-            driver = new Pcf8574(i2c);
-            lcd = new Lcd1602(registerSelectPin: 0,
-                enablePin: 2,
-                dataPins: new int[] { 4, 5, 6, 7 },
-                backlightPin: 3,
-                backlightBrightness: 0.1f,
-                readWritePin: 1,
-                controller: new GpioController(PinNumberingScheme.Logical, driver));
 
             //Create filled 0 charcater
             byte[] filledCircle = new byte[]
@@ -119,6 +130,9 @@ namespace SpyderTallyControllerWebApp.Models
 
         public void UpdateDisplay(bool blinkCursorOnly = false)
         {
+            if(lcd == null)
+                return;
+
             lock (displayLock)
             {
               if (!blinkCursorOnly)
