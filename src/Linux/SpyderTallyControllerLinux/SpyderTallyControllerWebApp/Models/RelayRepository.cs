@@ -20,11 +20,27 @@ namespace SpyderTallyControllerWebApp.Models
 
             relayStatus = new bool[deviceConfiguration.TallyCount];
 
-            //Initialize GPIO pins
-            gpioController = new GpioController();
-            foreach(var gpioPin in deviceConfiguration.TallyGpioPinAssignments)
+            // Initialize GPIO pins
+            try
             {
-                gpioController.OpenPin(gpioPin.Value, PinMode.Output, PinValue.Low);
+                gpioController = new GpioController();
+                foreach (var gpioPin in deviceConfiguration.TallyGpioPinAssignments)
+                {
+                    try
+                    {
+                        gpioController.OpenPin(gpioPin.Value, PinMode.Output, PinValue.Low);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to open and configure GPIO pin {gpioPin.Value}: {ex.Message}");
+                        // Handle the situation when a specific GPIO pin fails to open, e.g., continue without it
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to initialize GpioController: {ex.Message}");
+                // Handle the situation when GpioController fails to initialize, e.g., continue without GPIO control
             }
         }
 
