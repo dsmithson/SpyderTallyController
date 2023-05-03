@@ -1,0 +1,26 @@
+﻿@model HomeViewModel
+@{
+    ViewData["Title"] = "Status";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Current Status</h1>
+    <table align="center">
+        <tr>
+            @foreach (bool tallyStatus in Model.CurrentTallyStatus)
+            {
+                <td><img src="img/tally-@(tallyStatus ? "on" : "off").png"/></td>
+            }
+        </tr>
+    </table>
+</div>
+
+<div class="text-left">
+    <h4 style="margin-top: 48px">Tally Device Info</h4>
+    <div class="text-left"><b>Version:</b> @Model.Version</div>
+    <div class="text-left"><b>Uptime:</b> @Model.Uptime</div>
+    <div class="text-left"><b>Memory:</b> @Model.MemoryUsage</div>
+    <div class="text-left"><b>CPU:</b> @Model.CpuUsage</div>
+    <div class="text-left"><b>Disk:</b> @Model.DiskUsage</div>
+    <div class="text-left"><b>HW Model:</b> @Model.Model</div>
+</div>
