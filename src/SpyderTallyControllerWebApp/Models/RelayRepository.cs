@@ -66,7 +66,8 @@ namespace SpyderTallyControllerWebApp.Models
             if(deviceConfiguration.TallyGpioPinAssignments.TryGetValue(relayIndex, out int pinAssignment))
             {
                 //Write hardware
-                gpioController.Write(pinAssignment, value ? PinValue.High : PinValue.Low);
+                if(gpioController != null)
+                    gpioController.Write(pinAssignment, value ? PinValue.High : PinValue.Low);
 
                 //Update internal state and fire event
                 relayStatus[relayIndex] = value;

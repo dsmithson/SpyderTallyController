@@ -43,7 +43,7 @@ namespace SpyderTallyControllerWebApp.Models
                     backlightPin: 3,
                     backlightBrightness: 0.1f,
                     readWritePin: 1,
-                    controller: new GpioController(PinNumberingScheme.Logical, driver));
+                    controller: new GpioController(driver) /* PinNumberingScheme.Logical */);
             }
             catch(Exception ex)
             {
