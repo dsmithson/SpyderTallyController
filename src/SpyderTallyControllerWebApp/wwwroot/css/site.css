@@ -114,3 +114,9 @@ body {
 .theme-switch input[type="checkbox"]:checked::before {
   transform: translateX(24px);
 }
+
+/* Configuration page form spacing */
+table tbody td {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
