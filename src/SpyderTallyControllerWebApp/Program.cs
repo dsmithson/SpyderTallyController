@@ -1,5 +1,7 @@
 using SpyderTallyControllerWebApp;
+using SpyderTallyControllerWebApp.Hubs;
 using SpyderTallyControllerWebApp.Models;
+using SpyderTallyControllerWebApp.Services;
 
 var spyderManager = new Spyder.Client.SpyderClientManager();
 spyderManager.ServerListChanged += async (s, e) =>
@@ -25,6 +27,8 @@ builder.Services.AddScoped<ISystemHealthRepository, SystemHealthRepository>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
+builder.Services.AddHostedService<TallyStatusBroadcaster>();
 
 var app = builder.Build();
 
@@ -50,5 +54,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHub<TallyHub>("/tallyHub");
 
 app.Run();
