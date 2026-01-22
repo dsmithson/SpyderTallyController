@@ -60,3 +60,33 @@
         </div>
     </div>
 </form>
+
+<div class="text-left" style="margin-top: 48px">
+	<h4>Display Settings</h4>
+	<div class="theme-switch">
+		<label for="darkModeToggle">Dark Mode</label>
+		<input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)" />
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		function toggleDarkMode(enabled) {
+			if (enabled) {
+				document.documentElement.setAttribute('data-theme', 'dark');
+				localStorage.setItem('theme', 'dark');
+			} else {
+				document.documentElement.removeAttribute('data-theme');
+				localStorage.setItem('theme', 'light');
+			}
+		}
+
+		// Initialize toggle state from localStorage
+		document.addEventListener('DOMContentLoaded', function() {
+			const toggle = document.getElementById('darkModeToggle');
+			if (toggle) {
+				toggle.checked = localStorage.getItem('theme') === 'dark';
+			}
+		});
+	</script>
+}
