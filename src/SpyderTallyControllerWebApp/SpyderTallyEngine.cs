@@ -9,7 +9,7 @@ namespace SpyderTallyControllerWebApp
     public class SpyderTallyEngine
     {
         private readonly IConfigurationRepository configurationRepository;
-        private readonly SpyderClientManager spyderManager;
+        private readonly ISpyderRepository spyderRepository;
         private readonly IRelayRepository relayRepository;
 
         private readonly TallyDeviceConfiguration deviceConfig;
@@ -17,7 +17,7 @@ namespace SpyderTallyControllerWebApp
 
         public SpyderTallyEngine(IConfigurationRepository configurationRepository, 
             IRelayRepository relayRepository,
-            SpyderClientManager spyderManager)
+            ISpyderRepository spyderRepository)
         {
             this.configurationRepository = configurationRepository;
             this.appConfig = configurationRepository.GetTallyAppConfiguration();
@@ -26,9 +26,8 @@ namespace SpyderTallyControllerWebApp
 
             this.relayRepository = relayRepository;
 
-            this.spyderManager = spyderManager;
-            spyderManager.RaiseDrawingDataChanged = true;
-            spyderManager.DrawingDataReceived += SpyderManager_DrawingDataReceived;
+            this.spyderRepository = spyderRepository;
+            spyderRepository.DrawingDataReceived += SpyderRepository_DrawingDataReceived;
         }
 
         private void ConfigurationRepository_TallyAppConfigurationChanged(object sender, TallyAppConfiguration e)
@@ -38,7 +37,7 @@ namespace SpyderTallyControllerWebApp
             UpdateTallies(null, null);
         }
 
-        private void SpyderManager_DrawingDataReceived(object sender, DrawingDataReceivedEventArgs e)
+        private void SpyderRepository_DrawingDataReceived(object sender, DrawingDataReceivedEventArgs e)
         {
             UpdateTallies(e.ServerIP, e.DrawingData);
         }

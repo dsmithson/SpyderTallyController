@@ -14,15 +14,12 @@
 
   <ItemGroup>
     <PackageReference Include="Iot.Device.Bindings" Version="4.1.0" />
+    <PackageReference Include="SpyderClientLibrary" Version="4.1.0" />
     <PackageReference Include="System.Device.Gpio" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="wwwroot\img\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\SpyderClientLibrary\src\SpyderClientLibrary\SpyderClientLibrary.csproj" />
   </ItemGroup>
 
 </Project>
