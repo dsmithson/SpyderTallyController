@@ -99,5 +99,24 @@ namespace SpyderTallyControllerWebApp.Controllers
                 (TallyMode.ForceOff, "Force Off")
             };
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetServers()
+        {
+            var servers = await spyderRepository.GetServersAsync();
+            return Json(servers);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSources(string serverIP)
+        {
+            if (string.IsNullOrWhiteSpace(serverIP))
+            {
+                return Json(new List<string>());
+            }
+
+            var sources = await spyderRepository.GetSourcesAsync(serverIP);
+            return Json(sources);
+        }
     }
 }

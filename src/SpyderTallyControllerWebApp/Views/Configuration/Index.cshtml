@@ -1,7 +1,87 @@
-﻿@model ConfigurationViewModel
+@model ConfigurationViewModel
 @{
 	ViewData["Title"] = "Configuration";
 }
+
+<style>
+	.combobox-wrapper {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+	}
+	.combobox-wrapper input {
+		padding-right: 28px;
+	}
+	/* Hide the native browser datalist dropdown arrow */
+	.combobox-wrapper input::-webkit-calendar-picker-indicator {
+		display: none !important;
+	}
+	.combobox-wrapper input::-webkit-list-button {
+		display: none !important;
+	}
+	.combobox-dropdown-btn {
+		position: absolute;
+		right: 4px;
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 4px;
+		color: #666;
+		font-size: 10px;
+	}
+	.combobox-dropdown-btn:hover {
+		color: #333;
+	}
+	[data-theme="dark"] .combobox-dropdown-btn {
+		color: #aaa;
+	}
+	[data-theme="dark"] .combobox-dropdown-btn:hover {
+		color: #fff;
+	}
+
+	/* Custom dropdown overlay styles */
+	.custom-dropdown {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		z-index: 1000;
+		min-width: 100%;
+		max-height: 200px;
+		overflow-y: auto;
+		background: #fff;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+		display: none;
+	}
+	.custom-dropdown.show {
+		display: block;
+	}
+	.custom-dropdown-item {
+		padding: 8px 12px;
+		cursor: pointer;
+		white-space: nowrap;
+	}
+	.custom-dropdown-item:hover {
+		background: #007bff;
+		color: #fff;
+	}
+	.custom-dropdown-empty {
+		padding: 8px 12px;
+		color: #888;
+		font-style: italic;
+	}
+	[data-theme="dark"] .custom-dropdown {
+		background: #333;
+		border-color: #555;
+	}
+	[data-theme="dark"] .custom-dropdown-item:hover {
+		background: #0056b3;
+	}
+	[data-theme="dark"] .custom-dropdown-empty {
+		color: #aaa;
+	}
+</style>
 
 <form asp-action="Save" method="post" class="form-horizontal" role="form">
 
@@ -28,14 +108,41 @@
 						</td>
 						<td>
 							<div class="col-md-5">
-								<input name="tallyConfigurations[@(tally.TallyIndex-1)].SpyderServerIP" asp-for="@tally.SpyderServerIP" class="form-control" style="width: 150px" />
+								<div class="combobox-wrapper">
+									<input name="tallyConfigurations[@(tally.TallyIndex-1)].SpyderServerIP" 
+										   asp-for="@tally.SpyderServerIP" 
+										   class="form-control server-input" 
+										   style="width: 150px" 
+										   list="serverList"
+										   data-tally-index="@tally.TallyIndex"
+										   autocomplete="off" />
+									<button type="button" class="combobox-dropdown-btn" onclick="showDatalistDropdown(this.previousElementSibling)" title="Show available servers">&#9660;</button>
+								</div>
 								<span asp-validation-for="@tally.SpyderServerIP" class="text-danger"></span>
 							</div>
 						</td>
 
 						<td>
 							<div class="col-md-5">
-								<input name="tallyConfigurations[@(tally.TallyIndex-1)].SpyderSourceName" asp-for="@tally.SpyderSourceName" class="form-control" style="width: 225px" />
+								<div class="combobox-wrapper">
+								<input name="tallyConfigurations[@(tally.TallyIndex-1)].SpyderSourceName" 
+									asp-for="@tally.SpyderSourceName" 
+									class="form-control source-input" 
+									style="width: 225px" 
+									list="sourceList-@tally.TallyIndex"
+									data-tally-index="@tally.TallyIndex"
+									autocomplete="off" />
+								<button type="button" class="combobox-dropdown-btn" onclick="showDatalistDropdown(this.previousElementSibling)" title="Show available sources">&#9660;</button>
+								</div>
+								<datalist id="sourceList-@tally.TallyIndex">
+									@if (!string.IsNullOrEmpty(tally.SpyderServerIP) && Model.SourcesByServer.TryGetValue(tally.SpyderServerIP, out var sources))
+									{
+										@foreach (var source in sources)
+										{
+											<option value="@source"></option>
+										}
+									}
+								</datalist>
 								<span asp-validation-for="@tally.SpyderSourceName" class="text-danger"></span>
 							</div>
 						</td>
@@ -53,6 +160,13 @@
 
 		</table>
 	</div>
+
+	<datalist id="serverList">
+		@foreach (var server in Model.AvailableServers)
+		{
+			<option value="@server"></option>
+		}
+	</datalist>
 
 	<div class="form-group" style="padding-top: 32px">
         <div class="col-md-offset-2 col-md-5">
@@ -87,6 +201,138 @@
 			if (toggle) {
 				toggle.checked = localStorage.getItem('theme') === 'dark';
 			}
+
+			// Set up server input change handlers for dynamic source loading
+			document.querySelectorAll('.server-input').forEach(function(serverInput) {
+				serverInput.addEventListener('change', function() {
+					updateSourcesForServer(this);
+				});
+
+				// Also update on input (after a short delay to avoid too many requests)
+				let debounceTimer;
+				serverInput.addEventListener('input', function() {
+					const input = this;
+					clearTimeout(debounceTimer);
+					debounceTimer = setTimeout(function() {
+						updateSourcesForServer(input);
+					}, 500);
+				});
+			});
 		});
+
+		async function updateSourcesForServer(serverInput) {
+			const serverIP = serverInput.value.trim();
+			const tallyIndex = serverInput.getAttribute('data-tally-index');
+			const sourceDatalist = document.getElementById('sourceList-' + tallyIndex);
+
+			if (!serverIP || !sourceDatalist) {
+				return;
+			}
+
+			try {
+				const response = await fetch('@Url.Action("GetSources", "Configuration")?serverIP=' + encodeURIComponent(serverIP));
+				if (response.ok) {
+					const sources = await response.json();
+
+					// Clear existing options
+					sourceDatalist.innerHTML = '';
+
+					// Add new options
+					sources.forEach(function(source) {
+						const option = document.createElement('option');
+						option.value = source;
+						sourceDatalist.appendChild(option);
+					});
+				}
+			} catch (error) {
+				console.error('Error fetching sources for server ' + serverIP + ':', error);
+			}
+		}
+
+		// Function to refresh all server suggestions
+		async function refreshServerList() {
+			try {
+				const response = await fetch('@Url.Action("GetServers", "Configuration")');
+				if (response.ok) {
+					const servers = await response.json();
+					const serverDatalist = document.getElementById('serverList');
+
+					if (serverDatalist) {
+						serverDatalist.innerHTML = '';
+						servers.forEach(function(server) {
+							const option = document.createElement('option');
+							option.value = server;
+							serverDatalist.appendChild(option);
+						});
+					}
+				}
+			} catch (error) {
+				console.error('Error refreshing server list:', error);
+			}
+		}
+
+		// Function to show custom dropdown with all options (no filtering)
+		function showDatalistDropdown(inputElement) {
+			// Close any existing dropdowns first
+			closeAllDropdowns();
+			
+			// Get the datalist ID from the input's list attribute
+			const datalistId = inputElement.getAttribute('list');
+			const datalist = document.getElementById(datalistId);
+			
+			if (!datalist) {
+				return;
+			}
+			
+			// Get all options from the datalist
+			const options = Array.from(datalist.querySelectorAll('option')).map(opt => opt.value);
+			
+			// Create the custom dropdown
+			const dropdown = document.createElement('div');
+			dropdown.className = 'custom-dropdown show';
+			
+			if (options.length === 0) {
+				const emptyItem = document.createElement('div');
+				emptyItem.className = 'custom-dropdown-empty';
+				emptyItem.textContent = 'No options available';
+				dropdown.appendChild(emptyItem);
+			} else {
+				options.forEach(function(optionValue) {
+					const item = document.createElement('div');
+					item.className = 'custom-dropdown-item';
+					item.textContent = optionValue;
+					item.addEventListener('click', function(e) {
+						e.stopPropagation();
+						inputElement.value = optionValue;
+						inputElement.dispatchEvent(new Event('change', { bubbles: true }));
+						closeAllDropdowns();
+						inputElement.focus();
+					});
+					dropdown.appendChild(item);
+				});
+			}
+			
+			// Position and show the dropdown
+			const wrapper = inputElement.closest('.combobox-wrapper');
+			wrapper.appendChild(dropdown);
+			
+			// Close dropdown when clicking outside
+			setTimeout(function() {
+				document.addEventListener('click', closeDropdownOnClickOutside);
+			}, 0);
+		}
+		
+		function closeAllDropdowns() {
+			document.querySelectorAll('.custom-dropdown').forEach(function(dropdown) {
+				dropdown.remove();
+			});
+			document.removeEventListener('click', closeDropdownOnClickOutside);
+		}
+		
+		function closeDropdownOnClickOutside(e) {
+			if (!e.target.closest('.custom-dropdown') && !e.target.closest('.combobox-dropdown-btn')) {
+				closeAllDropdowns();
+			}
+		}
 	</script>
 }
