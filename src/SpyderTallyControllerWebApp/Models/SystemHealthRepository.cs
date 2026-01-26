@@ -97,7 +97,7 @@ namespace SpyderTallyControllerWebApp.Models
         {
             //Sanity check on process
             if (!OperatingSystem.IsLinux())
-                return "OS Not Supported";
+                return null;
 
             try
             {
