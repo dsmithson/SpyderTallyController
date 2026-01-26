@@ -10,8 +10,8 @@ namespace SpyderTallyControllerWebApp.Models
     public class SpyderRepository : ISpyderRepository
     {
         private readonly SpyderServerEventListener serverEventListener;
-        private readonly List<string> servers = new List<string>();
-        private readonly ReaderWriterLockSlim serversLock = new ReaderWriterLockSlim();
+        private readonly HashSet<string> servers = new HashSet<string>();
+        private readonly object serversLock = new object();
 
         public event DrawingDataReceivedHandler DrawingDataReceived;
 
@@ -30,52 +30,60 @@ namespace SpyderTallyControllerWebApp.Models
 
         private void ServerEventListener_ServerAnnounceMessageReceived(object sender, SpyderServerAnnounceInformation serverInfo)
         {
-            //See if we already have this server
-            serversLock.EnterReadLock();
-            bool exists = servers.Contains(serverInfo.Address);
-            serversLock.ExitReadLock();
-
-            //Do we need to add this?
-            if(exists)
+            lock (serversLock)
             {
-                serversLock.EnterWriteLock();
-                servers.Add(serverInfo.Address);
-                serversLock.ExitWriteLock();
+                servers.Add(serverInfo.Address); // HashSet.Add handles duplicates automatically
             }
         }
 
-        public async Task<List<string>> GetServersAsync()
+        public Task<List<string>> GetServersAsync()
         {
-            try
+            lock (serversLock)
             {
-                serversLock.EnterReadLock();
-                return [.. servers];
-            }
-            finally
-            {
-                serversLock.ExitReadLock();
+                return Task.FromResult(servers.ToList());
             }
         }
 
         public async Task<List<string>> GetSourcesAsync(string serverIP)
         {
-            //Connect to server (note we don't actually care about the hardware type for this simple call)
+            var timeout = TimeSpan.FromSeconds(2);
+            
+            try
+            {
+                var task = GetSourcesInternalAsync(serverIP);
+                return await task.WaitAsync(timeout);
+            }
+            catch (TimeoutException)
+            {
+                return [];
+            }
+            catch (Exception)
+            {
+                return [];
+            }
+        }
+
+        private async Task<List<string>> GetSourcesInternalAsync(string serverIP)
+        {
             var client = new SpyderUdpClient(HardwareType.Spyder300, serverIP);
             try
             {
                 if (await client.StartupAsync())
                 {
                     var sources = await client.GetSources();
-                    if(sources != null)
-                        return sources?.Select(s => s.Name).ToList();
+                    return sources?.Select(s => s.Name).ToList() ?? [];
                 }
+                return [];
             }
             finally
             {
-                await client?.ShutdownAsync();
+                // Fire and forget shutdown to avoid blocking on cleanup
+                _ = Task.Run(async () =>
+                {
+                    try { await client.ShutdownAsync(); }
+                    catch { /* ignore cleanup errors */ }
+                });
             }
-
-            return [];
         }
     }
 }
