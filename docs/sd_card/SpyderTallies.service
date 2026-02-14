@@ -3,28 +3,19 @@ Description=Spyder Tally application by Derek Smithson (Knightware)
 After=network.target
 
 [Service]
-# systemd will run this executable to start the service
-# if /usr/bin/dotnet doesn't work, use `which dotnet` to find correct dotnet executable path
-WorkingDirectory=/home/dsmithson/app
-ExecStart=/home/dsmithson/.dotnet/dotnet /home/dsmithson/app/SpyderTallyControllerWebApp.dll
+WorkingDirectory=/opt/spyder-tally
+ExecStart=/opt/spyder-tally/SpyderTallyControllerWebApp
 
 # to query logs using journalctl, set a logical name here
 SyslogIdentifier=SpyderTallies
 
-# Use your username to keep things simple.
-# If you pick a different user, make sure dotnet and all permissions are set correctly to run the app
-# To update permissions, use 'chown yourusername -R /srv/HelloWorld' to take ownership of the folder and files,
-#       Use 'chmod +x /srv/HelloWorld/HelloWorld' to allow execution of the executable file
-User=dsmithson
+# The install script will replace __USER__ with the installing user
+User=__USER__
 
 # ensure the service restarts after crashing
 Restart=always
-# amount of time to wait before restarting the service                        
+# amount of time to wait before restarting the service
 RestartSec=5
-
-# This environment variable is necessary when dotnet isn't loaded for the specified user.
-# To figure out this value, run 'env | grep DOTNET_ROOT' when dotnet has been loaded into your shell.
-Environment=DOTNET_ROOT=/home/dsmithson/.dotnet
 
 [Install]
 WantedBy=multi-user.target
