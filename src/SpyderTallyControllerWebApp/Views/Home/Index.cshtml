@@ -7,9 +7,9 @@
     <h1 class="display-4">Current Status</h1>
     <table align="center">
         <tr>
-            @foreach (bool tallyStatus in Model.CurrentTallyStatus)
+            @for (int i = 0; i < Model.CurrentTallyStatus.Length; i++)
             {
-                <td><img src="img/tally-@(tallyStatus ? "on" : "off").png"/></td>
+                <td><img id="tally-@i" src="img/tally-@(Model.CurrentTallyStatus[i] ? "on" : "off").png"/></td>
             }
         </tr>
     </table>
@@ -24,3 +24,25 @@
     <div class="text-left"><b>Disk:</b> @Model.DiskUsage</div>
     <div class="text-left"><b>HW Model:</b> @Model.Model</div>
 </div>
+
+@section Scripts {
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/tallyHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("TallyStatusUpdated", function (tallyStatus) {
+            for (let i = 0; i < tallyStatus.length; i++) {
+                const img = document.getElementById("tally-" + i);
+                if (img) {
+                    img.src = "img/tally-" + (tallyStatus[i] ? "on" : "off") + ".png";
+                }
+            }
+        });
+
+        connection.start().catch(function (err) {
+            console.error("SignalR connection error: " + err.toString());
+        });
+    </script>
+}

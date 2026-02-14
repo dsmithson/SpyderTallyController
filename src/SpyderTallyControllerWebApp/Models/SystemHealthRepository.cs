@@ -95,15 +95,26 @@ namespace SpyderTallyControllerWebApp.Models
 
         private async Task<string> RunProcessAndGetLine(string processName, string args = null)
         {
-            Process process = Process.Start(processName, args);
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.CreateNoWindow = true;
-            process.Start();
+            //Sanity check on process
+            if (!OperatingSystem.IsLinux())
+                return null;
 
-            string response = await process.StandardOutput.ReadToEndAsync();
-            process.WaitForExit();
-            return response;
+            try
+            {
+                Process process = Process.Start(processName, args);
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.CreateNoWindow = true;
+                process.Start();
+
+                string response = await process.StandardOutput.ReadToEndAsync();
+                process.WaitForExit();
+                return response;
+            }
+            catch(Exception ex)
+            {
+                return $"Error: {ex.Message}";
+            }
         }
     }
 }

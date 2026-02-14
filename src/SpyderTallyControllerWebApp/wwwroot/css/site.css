@@ -16,3 +16,107 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Dark mode styles */
+[data-theme="dark"] {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] body {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .navbar {
+  background-color: #2d2d2d !important;
+  border-color: #404040 !important;
+}
+
+[data-theme="dark"] .navbar-brand,
+[data-theme="dark"] .nav-link {
+  color: #e0e0e0 !important;
+}
+
+[data-theme="dark"] .nav-link:hover {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .footer {
+  background-color: #2d2d2d;
+  border-color: #404040 !important;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .form-control {
+  background-color: #2d2d2d;
+  border-color: #404040;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .form-control:focus {
+  background-color: #3d3d3d;
+  border-color: #0d6efd;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] select.form-control {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] table {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] a {
+  color: #6ea8fe;
+}
+
+[data-theme="dark"] a:hover {
+  color: #9ec5fe;
+}
+
+/* Dark mode toggle switch styling */
+.theme-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-switch input[type="checkbox"] {
+  width: 50px;
+  height: 26px;
+  appearance: none;
+  background-color: #ccc;
+  border-radius: 13px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.theme-switch input[type="checkbox"]:checked {
+  background-color: #0d6efd;
+}
+
+.theme-switch input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: white;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.theme-switch input[type="checkbox"]:checked::before {
+  transform: translateX(24px);
+}
+
+/* Configuration page form spacing */
+table tbody td {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}

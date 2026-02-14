@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rid: [linux-arm64, linux-arm]
+    defaults:
+      run:
+        working-directory: src/
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore -r ${{ matrix.rid }}
+
+    - name: Publish self-contained single-file
+      run: |
+        dotnet publish SpyderTallyControllerWebApp/SpyderTallyControllerWebApp.csproj \
+          -c Release \
+          -r ${{ matrix.rid }} \
+          --self-contained \
+          -p:PublishSingleFile=true \
+          -p:IncludeNativeLibrariesForSelfExtract=true \
+          -o ../publish/${{ matrix.rid }}
+
+    - name: Package release tarball
+      working-directory: ${{ github.workspace }}
+      run: |
+        STAGE_DIR="spyder-tally-${{ matrix.rid }}"
+        mkdir -p "$STAGE_DIR/bin"
+
+        # Copy published binary
+        cp publish/${{ matrix.rid }}/SpyderTallyControllerWebApp "$STAGE_DIR/bin/"
+
+        # Copy config and support files
+        cp docs/sd_card/install.sh "$STAGE_DIR/"
+        cp docs/sd_card/nginx.conf "$STAGE_DIR/"
+        cp docs/sd_card/SpyderTallies.service "$STAGE_DIR/"
+        cp docs/sd_card/appConfig.json "$STAGE_DIR/"
+        cp docs/sd_card/deviceConfig.json "$STAGE_DIR/"
+
+        chmod +x "$STAGE_DIR/install.sh"
+        tar czf "spyder-tally-${{ matrix.rid }}.tar.gz" "$STAGE_DIR"
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: spyder-tally-${{ matrix.rid }}
+        path: spyder-tally-${{ matrix.rid }}.tar.gz
+        if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        generate_release_notes: true
+        files: |
+          spyder-tally-linux-arm64/spyder-tally-linux-arm64.tar.gz
+          spyder-tally-linux-arm/spyder-tally-linux-arm.tar.gz

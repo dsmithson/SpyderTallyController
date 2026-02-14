@@ -1,20 +1,17 @@
+using Spyder.Client.Net.Notifications;
 using SpyderTallyControllerWebApp;
+using SpyderTallyControllerWebApp.Hubs;
 using SpyderTallyControllerWebApp.Models;
+using SpyderTallyControllerWebApp.Services;
 
-var spyderManager = new Spyder.Client.SpyderClientManager();
-spyderManager.ServerListChanged += async (s, e) =>
-{
-    foreach (var server in (await spyderManager.GetServers()))
-        server.DrawingDataThrottleInterval = TimeSpan.FromMilliseconds(100);
-};
-await spyderManager.StartupAsync();
+var serverEventListener = await SpyderServerEventListener.GetInstanceAsync();
 
 var builder = WebApplication.CreateBuilder(args);
 
 //Allow access on outside adapters
 builder.WebHost.UseUrls("http://*:5000");
 
-builder.Services.AddSingleton(spyderManager);
+builder.Services.AddSingleton(serverEventListener);
 builder.Services.AddSingleton<ISpyderRepository, SpyderRepository>();
 builder.Services.AddSingleton<IConfigurationRepository, ConfigurationRepository>();
 builder.Services.AddSingleton<IRelayRepository, RelayRepository>();
@@ -25,6 +22,8 @@ builder.Services.AddScoped<ISystemHealthRepository, SystemHealthRepository>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
+builder.Services.AddHostedService<TallyStatusBroadcaster>();
 
 var app = builder.Build();
 
@@ -50,5 +49,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHub<TallyHub>("/tallyHub");
 
 app.Run();
