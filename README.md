@@ -27,7 +27,23 @@ The video below walks through the device hardware and software, providing an ove
 
 Building your own Device
 =================
-All the instructions needed to get a device built and programmed are contained as a blog post on my Knighware.net website, and you can view that post [here](https://www.knightware.net/?p=4086).  The post walks through the hardware needed to build your own device, the wiring for that hardware, and even configuring an SD card image containing the configured tally application.
+You can also check out the [blog post on Knightware.net](https://www.knightware.net/?p=4086) which walks through the hardware and build process in detail.
+
+### 4-Relay Setup
+
+1. Gather your hardware (Raspberry Pi, 4-relay module, jumper wires, power supply, and optionally an LCD display)
+2. Wire up the device following the [4-relay wiring guide](docs/device_wiring_4wire.md)
+3. Image an SD card using [Raspberry Pi Imager](https://www.raspberrypi.com/software/) with Raspberry Pi OS (Lite is fine)
+4. Boot the Pi, connect it to your network, and SSH in
+5. Download and run the installer:
+   ```bash
+   wget https://github.com/dsmithson/SpyderTallyController/releases/latest/download/spyder-tally-linux-arm.tar.gz
+   tar xzf spyder-tally-linux-arm.tar.gz
+   cd spyder-tally-linux-arm/
+   sudo ./install.sh
+   ```
+   For 64-bit Raspberry Pi OS (Pi 4/5), use `spyder-tally-linux-arm64.tar.gz` instead.
+6. Open a browser to `http://<your-pi-ip>` to configure your tally sources
 
 
 Some Useful Links
