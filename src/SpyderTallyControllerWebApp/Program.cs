@@ -8,8 +8,11 @@ var serverEventListener = await SpyderServerEventListener.GetInstanceAsync();
 
 var builder = WebApplication.CreateBuilder(args);
 
-//Allow access on outside adapters
-builder.WebHost.UseUrls("http://*:5000");
+// Use ASPNETCORE_URLS if set (e.g. http://+:80 in production), otherwise default to port 5000 for development
+if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
+{
+    builder.WebHost.UseUrls("http://*:5000");
+}
 
 builder.Services.AddSingleton(serverEventListener);
 builder.Services.AddSingleton<ISpyderRepository, SpyderRepository>();

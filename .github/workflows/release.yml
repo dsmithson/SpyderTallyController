@@ -42,12 +42,14 @@ jobs:
         STAGE_DIR="spyder-tally-${{ matrix.rid }}"
         mkdir -p "$STAGE_DIR/bin"
 
-        # Copy published binary
+        # Copy published binary and static web assets
         cp publish/${{ matrix.rid }}/SpyderTallyControllerWebApp "$STAGE_DIR/bin/"
+        if [ -d "publish/${{ matrix.rid }}/wwwroot" ]; then
+          cp -r publish/${{ matrix.rid }}/wwwroot "$STAGE_DIR/bin/"
+        fi
 
         # Copy config and support files
         cp docs/sd_card/install.sh "$STAGE_DIR/"
-        cp docs/sd_card/nginx.conf "$STAGE_DIR/"
         cp docs/sd_card/SpyderTallies.service "$STAGE_DIR/"
         cp docs/sd_card/appConfig.json "$STAGE_DIR/"
         cp docs/sd_card/deviceConfig.json "$STAGE_DIR/"
