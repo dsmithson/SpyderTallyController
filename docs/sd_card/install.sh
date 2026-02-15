@@ -69,12 +69,6 @@ if systemctl is-active --quiet "$SERVICE_NAME" 2>/dev/null; then
     systemctl stop "$SERVICE_NAME"
 fi
 
-# --- Install nginx ---
-
-echo "Installing nginx..."
-apt-get update -qq
-apt-get install -y -qq nginx > /dev/null
-
 # --- Enable I2C ---
 
 echo "Enabling I2C interface..."
@@ -94,6 +88,12 @@ mkdir -p "$INSTALL_DIR"
 cp "$SCRIPT_DIR/bin/SpyderTallyControllerWebApp" "$INSTALL_DIR/"
 chmod +x "$INSTALL_DIR/SpyderTallyControllerWebApp"
 
+# Copy static web assets (CSS, JS, images, etc.)
+if [ -d "$SCRIPT_DIR/bin/wwwroot" ]; then
+    cp -r "$SCRIPT_DIR/bin/wwwroot" "$INSTALL_DIR/"
+    echo "  Installed static web assets"
+fi
+
 # Copy default config files (only if they don't already exist, to preserve user settings on upgrade)
 for config_file in appConfig.json deviceConfig.json; do
     if [ ! -f "$INSTALL_DIR/$config_file" ]; then
@@ -106,14 +106,6 @@ done
 
 # Set ownership so the service user can write config files
 chown -R "$INSTALL_USER":"$INSTALL_USER" "$INSTALL_DIR"
-
-# --- Install nginx config ---
-
-echo "Installing nginx configuration..."
-cp "$SCRIPT_DIR/nginx.conf" /etc/nginx/nginx.conf
-nginx -t -q
-systemctl restart nginx
-systemctl enable nginx
 
 # --- Install systemd service ---
 
